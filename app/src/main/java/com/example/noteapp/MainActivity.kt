@@ -32,11 +32,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun NotesApp(noteViewModel: NoteViewModel) {
     val notesList = noteViewModel.noteList.collectAsState().value
+    val searchText = noteViewModel.searchText.collectAsState().value
+    val persons = noteViewModel.persons.collectAsState().value
+    val doesValueContain = noteViewModel.doesValueContain.collectAsState().value
+    val isSearching = noteViewModel.isSearching.collectAsState().value
 
     NoteAppHomeScreen(
         notes = notesList,
+        persons = persons,
+        doesValueContain = doesValueContain,
         onRemoveNote = { noteViewModel.removeNote(it) },
         onAddNote = { noteViewModel.addNote(it) },
+        searchText=searchText,
+        isSearching=isSearching,
+        onSearchTextChange= { noteViewModel.onSearchTextChange(it) },
     )
 }
 

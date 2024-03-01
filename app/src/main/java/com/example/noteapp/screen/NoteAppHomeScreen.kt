@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.Card
@@ -23,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -46,8 +49,13 @@ import com.example.noteapp.roomDB.entity.Note
 @Composable
 fun NoteAppHomeScreen(
     notes: List<Note>,
+    persons: List<Note>,
     onAddNote: (Note) -> Unit,
     onRemoveNote: (Note) -> Unit,
+    doesValueContain: Boolean,
+    searchText: String,
+    isSearching: Boolean,
+    onSearchTextChange: (String) -> Unit,
 ) {
     val title = remember {
         mutableStateOf("")
@@ -77,6 +85,9 @@ fun NoteAppHomeScreen(
                 .padding(top = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            NotesInputText(onTextChange = {
+                onSearchTextChange(it)
+            }, text = searchText, label = "Search", isSingleLine = true)
             NotesInputText(
                 onTextChange = {
                     title.value = it
@@ -101,11 +112,37 @@ fun NoteAppHomeScreen(
                     Log.e("description_log", description.value)
                 }
             })
-            Spacer(modifier = Modifier.padding(top = 16.dp))
-            LazyColumn {
-                items(notes) { note ->
-                    NoteRow(note = note,
-                        onNoteClicked = { onRemoveNote(it) })
+            Log.e("isSearching_log", isSearching.toString())
+            Log.e("persons_log", persons.size.toString())
+            if (isSearching) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                    Log.e("doesValueContain_log", doesValueContain.toString())
+                    /*if (persons.size.toString().isEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "No value found", style = TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.Black
+                                )
+                            )
+                        }
+                    }*/
+                }
+            } else {
+                Spacer(modifier = Modifier.padding(top = 16.dp))
+                LazyColumn {
+                    items(persons) { note ->
+                        NoteRow(note = note,
+                            onNoteClicked = { onRemoveNote(it) })
+                    }
                 }
             }
         }

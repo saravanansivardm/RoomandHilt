@@ -23,4 +23,16 @@ class Note @RequiresApi(Build.VERSION_CODES.O) constructor(
 
 //    @ColumnInfo(name = "note_entry_date")
 //    val entryDate: Date = Date.from(Instant.now())
-)
+) {
+    fun doesMatchSearchQuery(query: String): Boolean {
+        val matchingCombinations = listOf(
+            "$title$description",
+            "$title $description",
+            "${title.first()} ${description.first()}",
+        )
+
+        return matchingCombinations.any {
+            it.contains(query, ignoreCase = true)
+        }
+    }
+}
