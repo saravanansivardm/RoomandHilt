@@ -1,0 +1,71 @@
+name: Build and Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ feature-change-BG ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Generating Lint Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: "temurin"
+          java-version: 17
+
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+
+      - name: Run Lint
+        run: ./gradlew lintDebug
+
+      - name: Upload html test report
+        uses: actions/upload-artifact@v2
+        with:
+          name: index.html
+          path: app/build/reports/lint-results-debug.html
+      # For Building APK
+      - name: Build debug APK
+        run: ./gradlew build
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4.3.0
+        with:
+          name: AuthLogin.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: upload artifact to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.5.1
+        with:
+          appId: ${{secrets.FIREBASE_APP_ID}}
+          token: ${{secrets.FIREBASE_TOKEN}}
+          serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          groups: testers
+          file: app/build/outputs/apk/debug/app-debug.apk
+
+  notification_job:
+    needs: [ local_test_job, android_test_job, build_job ]
+    name: Notify Workflow Results
+    runs-on: ubuntu-latest
+    steps:
+      - uses: technote-space/workflow-conclusion-action@v1
+      - name: Send mail
+        if: failure()
+        uses: dawidd6/action-send-mail@v2
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: Github Actions Job result
+          body: Build job of ${{github.repository}} completed successfully! The Job worflow ${{ github.workflow }} of ${{ github.repository }} has result of ${{ env.WORKFLOW_CONCLUSION }}
+          to: testuserpoiuy@gmail.com
+          from: From Github Action
