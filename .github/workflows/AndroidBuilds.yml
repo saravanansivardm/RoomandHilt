@@ -1,12 +1,10 @@
 name: Build and Test
-
 on:
   pull_request:
     branches: [ main ]
   push:
-    branches: [ feature-change-BG ]
+    branches: [ main ]
   workflow_dispatch:
-
 jobs:
   lint:
     name: Generating Lint Files
